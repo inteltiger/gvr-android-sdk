@@ -40,9 +40,9 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
-    implementation 'com.google.android.exoplayer:extension-gvr:2.9.0'
-
-    implementation files('../../libraries/sdk-audio-1.190.0.aar')
-    implementation files('../../libraries/sdk-base-1.200.0.aar')
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.6'
+    implementation 'com.google.android.exoplayer:extension-gvr:2.9.6'
+// exoplayer already import 1.190.0 audio and base
+//    implementation files('../../libraries/sdk-audio-1.190.0.aar')
+//    implementation files('../../libraries/sdk-base-1.200.0.aar')
 }
