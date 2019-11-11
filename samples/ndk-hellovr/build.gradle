@@ -57,7 +57,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.vr:sdk-base:1.200.0'
+    implementation files('../../libraries/sdk-base-1.200.0.aar')
 }
 
 build.dependsOn(':extractNdk')

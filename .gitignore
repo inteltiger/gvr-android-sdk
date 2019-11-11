@@ -14,3 +14,7 @@ local.properties
 
 # OS configurations.
 .DS_Store
+
+.project
+.classpath
+.settings
