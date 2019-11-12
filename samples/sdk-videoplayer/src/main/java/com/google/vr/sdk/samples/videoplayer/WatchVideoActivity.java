@@ -210,8 +210,13 @@ public class WatchVideoActivity extends Activity {
     } else {
       // Unprotected video, does not require a secure path for playback.
       Log.i(TAG, "Using cleartext video sample.");
-      streamUri = Uri.parse("https://storage.googleapis.com/wvmedia/clear/h264/tears/tears.mpd");
+      streamUri = Uri.parse("https://storage.googleapis.com/wvmedia/clear/h264/tears/tears.mpd"); // TODO why i see a circle only in S9?
+      // streamUri = Uri.parse("https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_h264_baseline_240p_800.mp4"); //i can see this
     }
+
+    //streamUri = Uri.parse("file:////sdcard/diving_3840_2048.mp4");
+    streamUri = Uri.parse("file:////sdcard/mix-res.mp4");
+    drmVideoId = null;
 
     try {
       videoPlayer.initPlayer(streamUri, drmVideoId);

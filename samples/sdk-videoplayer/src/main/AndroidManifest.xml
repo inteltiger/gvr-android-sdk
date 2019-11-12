@@ -11,6 +11,8 @@
 
     <!-- Required by the app to stream video. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <!-- Make accelerometer and gyroscope hard requirements for good head tracking. -->
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true"/>
