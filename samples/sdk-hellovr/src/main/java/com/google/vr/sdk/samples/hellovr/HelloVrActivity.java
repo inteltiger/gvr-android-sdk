@@ -23,7 +23,6 @@ import android.util.Log;
 import com.google.vr.ndk.base.Properties;
 import com.google.vr.ndk.base.Properties.PropertyType;
 import com.google.vr.ndk.base.Value;
-import com.google.vr.sdk.audio.GvrAudioEngine;
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
@@ -126,10 +125,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
   private float[] tempPosition;
   private float[] headRotation;
 
-  private GvrAudioEngine gvrAudioEngine;
-  private volatile int sourceId = GvrAudioEngine.INVALID_ID;
-  private volatile int successSourceId = GvrAudioEngine.INVALID_ID;
-
   private Properties gvrProperties;
   // This is an opaque wrapper around an internal GVR property. It is set via Properties and
   // should be shutdown via a {@link Value#close()} call when no longer needed.
@@ -156,9 +151,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
     modelTarget = new float[16];
     modelRoom = new float[16];
     headView = new float[16];
-
-    // Initialize 3D audio engine.
-    gvrAudioEngine = new GvrAudioEngine(this, GvrAudioEngine.RenderingMode.BINAURAL_HIGH_QUALITY);
 
     random = new Random();
   }
@@ -189,14 +181,12 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
 
   @Override
   public void onPause() {
-    gvrAudioEngine.pause();
     super.onPause();
   }
 
   @Override
   public void onResume() {
     super.onResume();
-    gvrAudioEngine.resume();
   }
 
   @Override
@@ -234,26 +224,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
     Matrix.setIdentityM(modelRoom, 0);
     Matrix.translateM(modelRoom, 0, 0, DEFAULT_FLOOR_HEIGHT, 0);
 
-    // Avoid any delays during start-up due to decoding of sound files.
-    new Thread(
-            new Runnable() {
-              @Override
-              public void run() {
-                // Start spatial audio playback of OBJECT_SOUND_FILE at the model position. The
-                // returned sourceId handle is stored and allows for repositioning the sound object
-                // whenever the target position changes.
-                gvrAudioEngine.preloadSoundFile(OBJECT_SOUND_FILE);
-                sourceId = gvrAudioEngine.createSoundObject(OBJECT_SOUND_FILE);
-                gvrAudioEngine.setSoundObjectPosition(
-                    sourceId, targetPosition[0], targetPosition[1], targetPosition[2]);
-                gvrAudioEngine.playSound(sourceId, true /* looped playback */);
-                // Preload an unspatialized sound to be played on a successful trigger on the
-                // target.
-                gvrAudioEngine.preloadSoundFile(SUCCESS_SOUND_FILE);
-              }
-            })
-        .start();
-
     updateTargetPosition();
 
     Util.checkGlError("onSurfaceCreated");
@@ -287,11 +257,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
     Matrix.setIdentityM(modelTarget, 0);
     Matrix.translateM(modelTarget, 0, targetPosition[0], targetPosition[1], targetPosition[2]);
 
-    // Update the sound location to match it with the new target position.
-    if (sourceId != GvrAudioEngine.INVALID_ID) {
-      gvrAudioEngine.setSoundObjectPosition(
-          sourceId, targetPosition[0], targetPosition[1], targetPosition[2]);
-    }
     Util.checkGlError("updateTargetPosition");
   }
 
@@ -315,10 +280,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
 
     // Update the 3d audio engine with the most recent head rotation.
     headTransform.getQuaternion(headRotation, 0);
-    gvrAudioEngine.setHeadRotation(
-        headRotation[0], headRotation[1], headRotation[2], headRotation[3]);
-    // Regular update call to GVR audio engine.
-    gvrAudioEngine.update();
 
     Util.checkGlError("onNewFrame");
   }
@@ -386,8 +347,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
     Log.i(TAG, "onCardboardTrigger");
 
     if (isLookingAtTarget()) {
-      successSourceId = gvrAudioEngine.createStereoSound(SUCCESS_SOUND_FILE);
-      gvrAudioEngine.playSound(successSourceId, false /* looping disabled */);
       hideTarget();
     }
   }
