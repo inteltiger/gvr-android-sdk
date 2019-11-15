@@ -295,19 +295,23 @@ public class MediaLoader {
 
     // Draw a black ground & gray sky background
     paint.setColor(Color.BLACK);
-    canvas.drawRect(0, height / 2, width, height, paint);
-    paint.setColor(Color.GRAY);
-    canvas.drawRect(0, 0, width, height / 2, paint);
+    canvas.drawRect(0, height / 2, width / 2, height / 2, paint);
+    paint.setColor(Color.RED);
+    canvas.drawRect(0, 0, width / 2, height / 2, paint);
+    paint.setColor(Color.CYAN);
+    canvas.drawRect(width / 2, height / 2, width, height, paint);
+    paint.setColor(Color.BLUE);
+    canvas.drawRect(width / 2, 0, width, height / 2, paint);
 
     // Render the grid lines.
-    paint.setColor(Color.WHITE);
+    paint.setColor(Color.GREEN);
 
     for (int i = 0; i < DEFAULT_SPHERE_COLUMNS; ++i) {
       int x = width * i / DEFAULT_SPHERE_COLUMNS;
       paint.setStrokeWidth((i % 3 == 0) ? majorWidth : minorWidth);
       canvas.drawLine(x, 0, x, height, paint);
     }
-
+    paint.setColor(Color.YELLOW);
     for (int i = 0; i < DEFAULT_SPHERE_ROWS; ++i) {
       int y = height * i / DEFAULT_SPHERE_ROWS;
       paint.setStrokeWidth((i % 3 == 0) ? majorWidth : minorWidth);
