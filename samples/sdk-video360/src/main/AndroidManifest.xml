@@ -51,10 +51,10 @@
           android:name="com.google.android.vr.icon_background"
           android:resource="@drawable/vr_icon_background" />
 
-      <!-- This Activity only shows up in Daydream Home and not the 2D Launcher. -->
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
-        <category android:name="com.google.intent.category.DAYDREAM"/>
+        <!--category android:name="android.intent.category.LAUNCHER" /-->
+        <category android:name="com.google.intent.category.CARDBOARD"/>
       </intent-filter>
     </activity>
   </application>
