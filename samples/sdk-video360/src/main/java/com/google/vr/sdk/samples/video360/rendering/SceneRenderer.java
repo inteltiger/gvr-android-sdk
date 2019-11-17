@@ -270,56 +270,6 @@ public final class SceneRenderer {
     controllerOrientation.toRotationMatrix(controllerOrientationMatrix);
   }
 
-  /**
-   * Processes Daydream Controller clicks and dispatches the event to {@link VideoUiView} as a
-   * synthetic {@link MotionEvent}.
-   *
-   * <p>This is a minimal input system that works because CanvasQuad is a simple rectangle with a
-   * hardcoded location. If the quad had a transformation matrix, then those transformations would
-   * need to be used when converting from the Controller's pose to a 2D click event.
-   */
-  @MainThread
-  public void handleClick() {
-    if (videoUiView.getAlpha() == 0) {
-      // When the UI is hidden, clicking anywhere will make it visible.
-      toggleUi();
-      return;
-    }
-
-    if (controllerOrientation == null) {
-      // Race condition between click & pose events.
-      return;
-    }
-
-    final PointF clickTarget = CanvasQuad.translateClick(controllerOrientation);
-    if (clickTarget == null) {
-      // When the click is outside of the View, hide the UI.
-      toggleUi();
-      return;
-    }
-
-    // The actual processing of the synthetic event needs to happen in the UI thread.
-    uiHandler.post(
-        new Runnable() {
-          @Override
-          public void run() {
-            // Generate a pair of down/up events to make the Android View processing handle the
-            // click.
-            long now = SystemClock.uptimeMillis();
-            MotionEvent down = MotionEvent.obtain(
-                now, now,  // Timestamps.
-                MotionEvent.ACTION_DOWN, clickTarget.x, clickTarget.y,  // The important parts.
-                1, 1, 0, 1, 1, 0, 0);  // Unused config data.
-            down.setSource(InputDevice.SOURCE_GAMEPAD);
-            videoUiView.dispatchTouchEvent(down);
-
-            // Clone the down event but change action.
-            MotionEvent up = MotionEvent.obtain(down);
-            up.setAction(MotionEvent.ACTION_UP);
-            videoUiView.dispatchTouchEvent(up);
-          }
-        });
-  }
 
   /** Uses Android's animation system to fade in/out when the user wants to show/hide the UI. */
   @AnyThread

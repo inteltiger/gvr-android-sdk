@@ -36,8 +36,7 @@ import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
 import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
-import com.google.vr.sdk.controller.Controller;
-import com.google.vr.sdk.controller.ControllerManager;
+
 import com.google.vr.sdk.samples.video360.rendering.SceneRenderer;
 import javax.microedition.khronos.egl.EGLConfig;
 
@@ -61,9 +60,7 @@ public class VrVideoActivity extends GvrActivity {
   // Given an intent with a media file and format, this will load the file and generate the mesh.
   private MediaLoader mediaLoader;
 
-  // Interfaces with the Daydream controller.
-  private ControllerManager controllerManager;
-  private Controller controller;
+
 
   /**
    * Configures the VR system.
@@ -108,12 +105,7 @@ public class VrVideoActivity extends GvrActivity {
       }
     });
 
-    // Configure Controller.
-    ControllerEventListener listener = new ControllerEventListener();
-    controllerManager = new ControllerManager(this, listener);
-    controller = controllerManager.getController();
-    controller.setEventListener(listener);
-    // controller.start() is called in onResume().
+
 
     checkPermissionAndInitialize();
   }
@@ -196,14 +188,14 @@ public class VrVideoActivity extends GvrActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    controllerManager.start();
+
     mediaLoader.resume();
   }
 
   @Override
   protected void onPause() {
     mediaLoader.pause();
-    controllerManager.stop();
+
     super.onPause();
   }
 
@@ -278,36 +270,4 @@ public class VrVideoActivity extends GvrActivity {
     }
   }
 
-  /** Forwards Controller events to SceneRenderer. */
-  private class ControllerEventListener extends Controller.EventListener
-      implements ControllerManager.EventListener {
-    private boolean touchpadDown = false;
-    private boolean appButtonDown = false;
-
-    @Override
-    public void onApiStatusChanged(int status) {
-      Log.i(TAG, ".onApiStatusChanged " + status);
-    }
-
-    @Override
-    public void onRecentered() {}
-
-    @Override
-    public void onUpdate() {
-      controller.update();
-
-      renderer.scene.setControllerOrientation(controller.orientation);
-
-      if (!touchpadDown && (controller.clickButtonState || controller.triggerButtonState)) {
-        renderer.scene.handleClick();
-      }
-
-      if (!appButtonDown && controller.appButtonState) {
-        renderer.scene.toggleUi();
-      }
-
-      touchpadDown = controller.clickButtonState || controller.triggerButtonState;
-      appButtonDown = controller.appButtonState;
-    }
-  }
 }
