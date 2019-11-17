@@ -28,7 +28,7 @@ import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import com.google.vr.ndk.base.DaydreamApi;
+//import com.google.vr.ndk.base.DaydreamApi;
 import com.google.vr.sdk.samples.video360.rendering.Mesh;
 
 /**
@@ -65,18 +65,7 @@ public class VideoActivity extends Activity {
           public void onClick(View v) {
             // Convert the Intent used to launch the 2D Activity into one that can launch the VR
             // Activity. This flow preserves the extras and data in the Intent.
-            DaydreamApi api =  DaydreamApi.create(VideoActivity.this);
-            if (api != null){
-              // Launch the VR Activity with the proper intent.
-              Intent intent = DaydreamApi.createVrIntent(
-                  new ComponentName(VideoActivity.this, VrVideoActivity.class));
-              intent.setData(getIntent().getData());
-              intent.putExtra(
-                  MediaLoader.MEDIA_FORMAT_KEY,
-                  getIntent().getIntExtra(MediaLoader.MEDIA_FORMAT_KEY, Mesh.MEDIA_MONOSCOPIC));
-              api.launchInVr(intent);
-              api.close();
-            } else {
+            {
               // Fall back for devices that don't have Google VR Services. This flow should only
               // be used for older Cardboard devices.
               Intent intent =
