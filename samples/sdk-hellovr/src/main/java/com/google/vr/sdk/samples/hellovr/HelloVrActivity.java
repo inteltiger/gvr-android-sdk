@@ -23,7 +23,6 @@ import android.util.Log;
 import com.google.vr.ndk.base.Properties;
 import com.google.vr.ndk.base.Properties.PropertyType;
 import com.google.vr.ndk.base.Value;
-import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
@@ -57,9 +56,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
 
   private static final float MIN_TARGET_DISTANCE = 3.0f;
   private static final float MAX_TARGET_DISTANCE = 3.5f;
-
-  private static final String OBJECT_SOUND_FILE = "audio/HelloVR_Loop.ogg";
-  private static final String SUCCESS_SOUND_FILE = "audio/HelloVR_Activation.ogg";
 
   private static final float DEFAULT_FLOOR_HEIGHT = -1.6f;
 
@@ -168,13 +164,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
     // Daydream controller input for basic interactions using the existing Cardboard trigger API.
     gvrView.enableCardboardTriggerEmulation();
 
-    if (gvrView.setAsyncReprojectionEnabled(true)) {
-      // Async reprojection decouples the app framerate from the display framerate,
-      // allowing immersive interaction even at the throttled clockrates set by
-      // sustained performance mode.
-      AndroidCompat.setSustainedPerformanceMode(this, true);
-    }
-
     setGvrView(gvrView);
     gvrProperties = gvrView.getGvrApi().getCurrentProperties();
   }
@@ -277,9 +266,6 @@ public class HelloVrActivity extends GvrActivity implements GvrView.StereoRender
     } // else the device doesn't support floor height detection so DEFAULT_FLOOR_HEIGHT is used.
 
     headTransform.getHeadView(headView, 0);
-
-    // Update the 3d audio engine with the most recent head rotation.
-    headTransform.getQuaternion(headRotation, 0);
 
     Util.checkGlError("onNewFrame");
   }
