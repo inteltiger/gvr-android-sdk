@@ -58,29 +58,8 @@ public class VideoActivity extends Activity {
 
     // Configure the MonoscopicView which will render the video and UI.
     videoView = (MonoscopicView) findViewById(R.id.video_view);
-    VideoUiView videoUi = (VideoUiView) findViewById(R.id.video_ui_view);
-    videoUi.setVrIconClickListener(
-        new OnClickListener() {
-          @Override
-          public void onClick(View v) {
-            // Convert the Intent used to launch the 2D Activity into one that can launch the VR
-            // Activity. This flow preserves the extras and data in the Intent.
-            {
-              // Fall back for devices that don't have Google VR Services. This flow should only
-              // be used for older Cardboard devices.
-              Intent intent =
-                  new Intent(getIntent()).setClass(VideoActivity.this, VrVideoActivity.class);
-              intent.removeCategory(Intent.CATEGORY_LAUNCHER);
-              intent.setFlags(0);  // Clear any flags from the previous intent.
-              startActivity(intent);
-            }
 
-            // See VrVideoActivity's launch2dActivity() for more info about why this finish() call
-            // may be required.
-            finish();
-          }
-        });
-    videoView.initialize(videoUi);
+    videoView.initialize();
 
     // Boilerplate for checking runtime permissions in Android.
     if (ContextCompat.checkSelfPermission(this, permission.READ_EXTERNAL_STORAGE)

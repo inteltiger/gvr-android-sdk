@@ -37,15 +37,13 @@ import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.ViewGroup;
-import com.google.vr.sdk.samples.video360.VideoUiView;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Controls and renders the GL Scene.
  *
  * <p>This class is shared between MonoscopicView & VrVideoActivity. It renders the display mesh, UI
- * and controller reticle as required. It also has basic Controller input which allows the user to
- * interact with {@link VideoUiView} while in VR.
+ * as required.
  */
 public final class SceneRenderer {
   private static final String TAG = "SceneRenderer";
@@ -53,9 +51,7 @@ public final class SceneRenderer {
   // This is the primary interface between the Media Player and the GL Scene.
   private SurfaceTexture displayTexture;
   private final AtomicBoolean frameAvailable = new AtomicBoolean();
-  // Used to notify clients that displayTexture has a new frame. This requires synchronized access.
-  @Nullable
-  private OnFrameAvailableListener externalFrameListener;
+
 
   // GL components for the mesh that display the media. displayMesh should only be accessed on the
   // GL Thread, but requestedDisplayMesh needs synchronization.
@@ -65,12 +61,7 @@ public final class SceneRenderer {
   private Mesh requestedDisplayMesh;
   private int displayTexId;
 
-  // These are only valid if createForVR() has been called. In the 2D Activity, these are null
-  // since the UI is rendered in the standard Android layout.
-  @Nullable
-  private final CanvasQuad canvasQuad;
-  @Nullable
-  private final VideoUiView videoUiView;
+
   @Nullable
   private final Handler uiHandler;
 
@@ -79,12 +70,9 @@ public final class SceneRenderer {
    * Constructs the SceneRenderer with the given values.
    */
   /* package */ SceneRenderer(
-      CanvasQuad canvasQuad, VideoUiView videoUiView, Handler uiHandler,
-      SurfaceTexture.OnFrameAvailableListener externalFrameListener) {
-    this.canvasQuad = canvasQuad;
-    this.videoUiView = videoUiView;
+      Handler uiHandler
+      ) {
     this.uiHandler = uiHandler;
-    this.externalFrameListener = externalFrameListener;
   }
 
   /**
@@ -92,31 +80,21 @@ public final class SceneRenderer {
    * initializing the object on the GL thread.
    */
   public static SceneRenderer createFor2D() {
-    return new SceneRenderer(null, null, null, null);
+    return new SceneRenderer(null);
   }
 
   /**
    * Creates a SceneRenderer for VR but does not initialize it. {@link #glInit()} is used to finish
    * initializing the object on the GL thread.
    *
-   * <p>The also creates a {@link VideoUiView} that is bound to the VR scene. The View is backed by
-   * a {@link CanvasQuad} and is meant to be rendered in a VR scene.
-   *
-   * @param context the {@link Context} used to initialize the {@link VideoUiView}
-   * @param parent the new view is attached to the parent in order to properly handle Android
-   *     events
-   * @return a SceneRender configured for VR and a bound {@link VideoUiView} that can be treated
-   *     similar to a View returned from findViewById.
+   * @return a SceneRender configured for VR
    */
   @MainThread
-  public static Pair<SceneRenderer, VideoUiView> createForVR(Context context, ViewGroup parent) {
-    CanvasQuad canvasQuad = new CanvasQuad();
-    VideoUiView videoUiView = VideoUiView.createForOpenGl(context, parent, canvasQuad);
-    OnFrameAvailableListener externalFrameListener = videoUiView.getFrameListener();
+  public static SceneRenderer createForVR() {
 
     SceneRenderer scene = new SceneRenderer(
-        canvasQuad, videoUiView, new Handler(Looper.getMainLooper()), externalFrameListener);
-    return Pair.create(scene, videoUiView);
+        new Handler(Looper.getMainLooper()));
+    return scene;
   }
 
   /**
@@ -137,23 +115,12 @@ public final class SceneRenderer {
 
     // When the video decodes a new frame, tell the GL thread to update the image.
     displayTexture.setOnFrameAvailableListener(
-        new OnFrameAvailableListener() {
-          @Override
-          public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-            frameAvailable.set(true);
-
-            synchronized (SceneRenderer.this) {
-              if (externalFrameListener != null) {
-                externalFrameListener.onFrameAvailable(surfaceTexture);
+            new OnFrameAvailableListener() {
+              @Override
+              public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                frameAvailable.set(true);
               }
-            }
-          }
-        });
-
-    if (canvasQuad != null) {
-      canvasQuad.glInit();
-    }
-
+            });
   }
 
   /**
@@ -237,9 +204,6 @@ public final class SceneRenderer {
     }
 
     displayMesh.glDraw(viewProjectionMatrix, eyeType);
-    if (videoUiView != null) {
-      canvasQuad.glDraw(viewProjectionMatrix, videoUiView.getAlpha());
-    }
 
   }
 
@@ -248,35 +212,6 @@ public final class SceneRenderer {
     if (displayMesh != null) {
       displayMesh.glShutdown();
     }
-    if (canvasQuad != null) {
-      canvasQuad.glShutdown();
-    }
   }
 
-
-  /** Uses Android's animation system to fade in/out when the user wants to show/hide the UI. */
-  @AnyThread
-  public void toggleUi() {
-    // This can be trigged via a controller action so switch to main thread to manipulate the View.
-    uiHandler.post(
-        new Runnable() {
-          @Override
-          public void run() {
-            if (videoUiView.getAlpha() == 0) {
-              videoUiView.animate().alpha(1).start();
-            } else {
-              videoUiView.animate().alpha(0).start();
-            }
-          }
-        });
-  }
-
-  /**
-   * Binds a listener used by external clients that need to know when a new video frame is ready.
-   * This is used by MonoscopicView to update the video position slider each frame.
-   */
-  @AnyThread
-  public synchronized void setVideoFrameListener(OnFrameAvailableListener videoFrameListener) {
-    externalFrameListener = videoFrameListener;
-  }
 }

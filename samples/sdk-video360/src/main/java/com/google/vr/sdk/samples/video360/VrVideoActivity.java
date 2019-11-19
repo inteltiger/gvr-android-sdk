@@ -25,7 +25,7 @@ import android.os.Bundle;
 import android.support.annotation.MainThread;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.util.Pair;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -53,9 +53,6 @@ public class VrVideoActivity extends GvrActivity {
 
   private GvrView gvrView;
   private Renderer renderer;
-
-  // Displays the controls for video playback.
-  private VideoUiView uiView;
 
   // Given an intent with a media file and format, this will load the file and generate the mesh.
   private MediaLoader mediaLoader;
@@ -160,7 +157,7 @@ public class VrVideoActivity extends GvrActivity {
   private void checkPermissionAndInitialize() {
     if (ContextCompat.checkSelfPermission(this, permission.READ_EXTERNAL_STORAGE)
         == PackageManager.PERMISSION_GRANTED) {
-      mediaLoader.handleIntent(getIntent(), uiView);
+      mediaLoader.handleIntent(getIntent());
     } else {
       exitFromVr();
       // This method will return false on Cardboard devices. This case isn't handled in this sample
@@ -202,7 +199,6 @@ public class VrVideoActivity extends GvrActivity {
   @Override
   protected void onDestroy() {
     mediaLoader.destroy();
-    uiView.setMediaPlayer(null);
     super.onDestroy();
   }
 
@@ -226,20 +222,7 @@ public class VrVideoActivity extends GvrActivity {
      */
     @MainThread
     public Renderer(ViewGroup parent) {
-      Pair<SceneRenderer, VideoUiView> pair
-          = SceneRenderer.createForVR(VrVideoActivity.this, parent);
-      scene = pair.first;
-      uiView = pair.second;
-      uiView.setVrIconClickListener(
-          new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-              if (!exitFromVr()) {
-                // Directly exit Cardboard Activities.
-                onActivityResult(EXIT_FROM_VR_REQUEST_CODE, RESULT_OK, null);
-              }
-            }
-          });
+      scene = SceneRenderer.createForVR();
     }
 
     @Override

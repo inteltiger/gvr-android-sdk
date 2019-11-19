@@ -128,12 +128,12 @@ public class MediaLoader {
    * Loads custom videos based on the Intent or load the default video. See the Javadoc for this
    * class for information on generating a custom intent via adb.
    */
-  public void handleIntent(Intent intent, VideoUiView uiView) {
+  public void handleIntent(Intent intent) {
     // Load the bitmap in a background thread to avoid blocking the UI thread. This operation can
     // take 100s of milliseconds.
     // Note that this sample doesn't cancel any pending mediaLoaderTasks since it assumes only one
     // Intent will ever be fired for a single Activity lifecycle.
-    mediaLoaderTask = new MediaLoaderTask(uiView);
+    mediaLoaderTask = new MediaLoaderTask();
     mediaLoaderTask.execute(intent);
   }
 
@@ -148,10 +148,9 @@ public class MediaLoader {
    * the background.
    */
   private class MediaLoaderTask extends AsyncTask<Intent, Void, Void> {
-    private final VideoUiView uiView;
 
-    public MediaLoaderTask(VideoUiView uiView) {
-      this.uiView = uiView;
+    public MediaLoaderTask() {
+
     }
 
     @Override
@@ -210,10 +209,7 @@ public class MediaLoader {
 
     @Override
     public void onPostExecute(Void unused) {
-      // Set or clear the UI's mediaPlayer on the UI thread.
-      if (uiView != null) {
-        uiView.setMediaPlayer(mediaPlayer);
-      }
+
     }
   }
 

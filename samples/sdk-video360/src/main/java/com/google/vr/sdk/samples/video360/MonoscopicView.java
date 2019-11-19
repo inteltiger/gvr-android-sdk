@@ -56,7 +56,6 @@ public final class MonoscopicView extends GLSurfaceView {
   private MediaLoader mediaLoader;
   private Renderer renderer;
   private TouchTracker touchTracker;
-  private VideoUiView uiView;
 
   /** Inflates a standard GLSurfaceView. */
   public MonoscopicView(Context context, AttributeSet attributeSet) {
@@ -67,14 +66,12 @@ public final class MonoscopicView extends GLSurfaceView {
   /**
    * Finishes initialization. This should be called immediately after the View is inflated.
    *
-   * @param uiView the video UI that should be bound to the underlying SceneRenderer
    */
-  public void initialize(VideoUiView uiView) {
-    this.uiView = uiView;
+  public void initialize() {
     mediaLoader = new MediaLoader(getContext());
 
     // Configure OpenGL.
-    renderer = new Renderer(uiView, mediaLoader);
+    renderer = new Renderer(mediaLoader);
     setEGLContextClientVersion(2);
     setRenderer(renderer);
     setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
@@ -112,13 +109,12 @@ public final class MonoscopicView extends GLSurfaceView {
 
   /** Destroys the underlying resources. If this is not called, the MediaLoader may leak. */
   public void destroy() {
-    uiView.setMediaPlayer(null);
     mediaLoader.destroy();
   }
 
   /** Parses the Intent and loads the appropriate media. */
   public void loadMedia(Intent intent) {
-    mediaLoader.handleIntent(intent, uiView);
+    mediaLoader.handleIntent(intent);
   }
 
   /** Detects sensor events and saves them as a matrix. */
@@ -275,23 +271,18 @@ public final class MonoscopicView extends GLSurfaceView {
     private final float[] viewMatrix = new float[16];
     private final float[] tempMatrix = new float[16];
 
-    private final VideoUiView uiView;
     private final MediaLoader mediaLoader;
 
-    public Renderer(VideoUiView uiView, MediaLoader mediaLoader) {
+    public Renderer(MediaLoader mediaLoader) {
       Matrix.setIdentityM(deviceOrientationMatrix, 0);
       Matrix.setIdentityM(touchPitchMatrix, 0);
       Matrix.setIdentityM(touchYawMatrix, 0);
-      this.uiView = uiView;
       this.mediaLoader = mediaLoader;
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
       scene.glInit();
-      if (uiView != null) {
-        scene.setVideoFrameListener(uiView.getFrameListener());
-      }
       mediaLoader.onGlSceneReady(scene);
     }
 
