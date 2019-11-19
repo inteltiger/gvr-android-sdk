@@ -37,7 +37,6 @@ import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.ViewGroup;
-import com.google.vr.sdk.controller.Orientation;
 import com.google.vr.sdk.samples.video360.VideoUiView;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -75,12 +74,6 @@ public final class SceneRenderer {
   @Nullable
   private final Handler uiHandler;
 
-  // Controller components.
-  private final Reticle reticle = new Reticle();
-  @Nullable
-  private Orientation controllerOrientation;
-  // This is accessed on the binder & GL Threads.
-  private final float[] controllerOrientationMatrix = new float[16];
 
   /**
    * Constructs the SceneRenderer with the given values.
@@ -132,7 +125,6 @@ public final class SceneRenderer {
    */
   public void glInit() {
     checkGlError();
-    Matrix.setIdentityM(controllerOrientationMatrix, 0);
 
     // Set the background frame color. This is only visible if the display mesh isn't a full sphere.
     GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -161,7 +153,7 @@ public final class SceneRenderer {
     if (canvasQuad != null) {
       canvasQuad.glInit();
     }
-    reticle.glInit();
+
   }
 
   /**
@@ -249,7 +241,6 @@ public final class SceneRenderer {
       canvasQuad.glDraw(viewProjectionMatrix, videoUiView.getAlpha());
     }
 
-    reticle.glDraw(viewProjectionMatrix, controllerOrientationMatrix);
   }
 
   /** Cleans up the GL resources. */
@@ -260,14 +251,6 @@ public final class SceneRenderer {
     if (canvasQuad != null) {
       canvasQuad.glShutdown();
     }
-    reticle.glShutdown();
-  }
-
-  /** Updates the Reticle's position with the latest Controller pose. */
-  @BinderThread
-  public synchronized void setControllerOrientation(Orientation currentOrientation) {
-    this.controllerOrientation = currentOrientation;
-    controllerOrientation.toRotationMatrix(controllerOrientationMatrix);
   }
 
 
