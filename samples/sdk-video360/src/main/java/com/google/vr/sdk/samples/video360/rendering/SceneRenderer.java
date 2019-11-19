@@ -62,17 +62,10 @@ public final class SceneRenderer {
   private int displayTexId;
 
 
-  @Nullable
-  private final Handler uiHandler;
-
-
   /**
    * Constructs the SceneRenderer with the given values.
    */
-  /* package */ SceneRenderer(
-      Handler uiHandler
-      ) {
-    this.uiHandler = uiHandler;
+  /* package */ SceneRenderer() {
   }
 
   /**
@@ -80,7 +73,7 @@ public final class SceneRenderer {
    * initializing the object on the GL thread.
    */
   public static SceneRenderer createFor2D() {
-    return new SceneRenderer(null);
+    return new SceneRenderer();
   }
 
   /**
@@ -92,8 +85,7 @@ public final class SceneRenderer {
   @MainThread
   public static SceneRenderer createForVR() {
 
-    SceneRenderer scene = new SceneRenderer(
-        new Handler(Looper.getMainLooper()));
+    SceneRenderer scene = new SceneRenderer();
     return scene;
   }
 
