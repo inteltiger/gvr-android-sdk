@@ -26,10 +26,7 @@ import android.support.annotation.MainThread;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import com.google.vr.ndk.base.DaydreamApi;
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
@@ -135,33 +132,13 @@ public class VrVideoActivity extends GvrActivity {
     finish();
   }
 
-  /**
-   * Tries to exit gracefully from VR using a VR transition dialog.
-   *
-   * @return whether the exit request has started or whether the request failed due to the device
-   *     not being Daydream Ready
-   */
-  private boolean exitFromVr() {
-    // This needs to use GVR's exit transition to avoid disorienting the user.
-    DaydreamApi api = DaydreamApi.create(this);
-    if (api != null) {
-      api.exitFromVr(this, EXIT_FROM_VR_REQUEST_CODE, null);
-      // Eventually, the Activity's onActivityResult will be called.
-      api.close();
-      return true;
-    }
-    return false;
-  }
-
   /** Initializes the Activity only if the permission has been granted. */
   private void checkPermissionAndInitialize() {
     if (ContextCompat.checkSelfPermission(this, permission.READ_EXTERNAL_STORAGE)
         == PackageManager.PERMISSION_GRANTED) {
       mediaLoader.handleIntent(getIntent());
     } else {
-      exitFromVr();
-      // This method will return false on Cardboard devices. This case isn't handled in this sample
-      // but it should be handled for VR Activities that run on Cardboard devices.
+      Log.e(TAG, "No read sdcard permission");
     }
   }
 
