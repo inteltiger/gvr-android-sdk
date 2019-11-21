@@ -83,12 +83,6 @@ public class VrVideoActivity extends GvrActivity {
     gvrView.setRenderer(renderer);
     setContentView(gvrView);
 
-    // Most Daydream phones can render a 4k video at 60fps in sustained performance mode. These
-    // options can be tweaked along with the render target scale.
-    if (gvrView.setAsyncReprojectionEnabled(true)) {
-      AndroidCompat.setSustainedPerformanceMode(this, true);
-    }
-
     // Handle the user clicking on the 'X' in the top left corner. Since this is done when the user
     // has taken the headset out of VR, it should launch the app's exit flow directly rather than
     // using the transition flow.
