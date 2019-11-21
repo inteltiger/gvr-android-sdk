@@ -18,11 +18,7 @@ package com.google.vr.sdk.samples.video360;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
+
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -50,19 +46,11 @@ import java.security.InvalidParameterException;
  *
  * <p>The Intent used to launch {@link VideoActivity} or {@link VrVideoActivity} is parsed by this
  * class and the extra & data fields are extracted. The data field should have a URI useable by
- * {@link MediaPlayer} or {@link BitmapFactory}. There should also be an integer extra matching one
+ * {@link MediaPlayer}. There should also be an integer extra matching one
  * of the MEDIA_* types in {@link Mesh}.
  *
  * <p>Example intents compatible with adb are:
  *   <ul>
- *     <li>
- *       A top-bottom stereo image in the VR Activity.
- *       <b>adb shell am start -a android.intent.action.VIEW  \
- *          -n com.google.vr.sdk.samples.video360/.VrVideoActivity \
- *          -d "file:///sdcard/IMAGE.JPG" \
- *          --ei stereoFormat 2
- *       </b>
- *     </li>
  *     <li>
  *       A monoscopic video in the 2D Activity.
  *       <b>adb shell am start -a android.intent.action.VIEW  \
@@ -100,8 +88,7 @@ public class MediaLoader {
   // simplicity.
   // This should be set or cleared in a synchronized manner.
   MediaPlayer mediaPlayer;
-  // This sample also supports loading images.
-  Bitmap mediaImage;
+
   // If the video or image fails to load, a placeholder panorama is rendered with error text.
   String errorText;
 
@@ -185,9 +172,6 @@ public class MediaLoader {
         String type = URLConnection.guessContentTypeFromName(uri.getPath());
         if (type == null) {
           throw new InvalidParameterException("Unknown file type: " + uri);
-        } else if (type.startsWith("image")) {
-          // Decoding a large image can take 100+ ms.
-          mediaImage = BitmapFactory.decodeFile(uri.getPath());
         } else if (type.startsWith("video")) {
           MediaPlayer mp = MediaPlayer.create(context, uri);
           synchronized (MediaLoader.this) {
@@ -234,7 +218,7 @@ public class MediaLoader {
       return;
     }
 
-    if ((errorText == null && mediaImage == null && mediaPlayer == null) || sceneRenderer == null) {
+    if ((errorText == null && mediaPlayer == null) || sceneRenderer == null) {
       // Wait for everything to be initialized.
       return;
     }
@@ -249,84 +233,9 @@ public class MediaLoader {
       // Start playback.
       mediaPlayer.setLooping(true);
       mediaPlayer.start();
-    } else if (mediaImage != null) {
-      // For images, acquire the displaySurface and draw the bitmap to it. Since our Mesh class uses
-      // an GL_TEXTURE_EXTERNAL_OES texture, it's possible to perform this decoding and rendering of
-      // a bitmap in the background without stalling the GL thread. If the Mesh used a standard
-      // GL_TEXTURE_2D, then it's possible to stall the GL thread for 100+ ms during the
-      // glTexImage2D call when loading 4k x 4k panoramas and copying the bitmap's data.
-      displaySurface = sceneRenderer.createDisplay(
-          mediaImage.getWidth(), mediaImage.getHeight(), mesh);
-      Canvas c = displaySurface.lockCanvas(null);
-      c.drawBitmap(mediaImage, 0, 0, null);
-      displaySurface.unlockCanvasAndPost(c);
-    } else {
-      // Handle the error case by creating a placeholder panorama.
-      mesh = Mesh.createUvSphere(
-          SPHERE_RADIUS_METERS, DEFAULT_SPHERE_ROWS, DEFAULT_SPHERE_COLUMNS,
-          DEFAULT_SPHERE_VERTICAL_DEGREES, DEFAULT_SPHERE_HORIZONTAL_DEGREES,
-          Mesh.MEDIA_MONOSCOPIC);
-
-      // 4k x 2k is a good default resolution for monoscopic panoramas.
-      displaySurface = sceneRenderer.createDisplay(
-          2 * DEFAULT_SURFACE_HEIGHT_PX, DEFAULT_SURFACE_HEIGHT_PX, mesh);
-      // Render placeholder grid and error text.
-      Canvas c = displaySurface.lockCanvas(null);
-      renderEquirectangularGrid(c, errorText);
-      displaySurface.unlockCanvasAndPost(c);
     }
   }
 
-  /**
-   * Renders a placeholder grid with optional error text.
-   */
-  private static void renderEquirectangularGrid(Canvas canvas, String message) {
-    // Configure the grid. Each square will be 15 x 15 degrees.
-    final int width = canvas.getWidth();
-    final int height = canvas.getHeight();
-    // This assumes a 4k resolution.
-    final int majorWidth = width / 256;
-    final int minorWidth = width / 1024;
-    final Paint paint = new Paint();
-
-    // Draw a black ground & gray sky background
-    paint.setColor(Color.BLACK);
-    canvas.drawRect(0, height / 2, width / 2, height / 2, paint);
-    paint.setColor(Color.RED);
-    canvas.drawRect(0, 0, width / 2, height / 2, paint);
-    paint.setColor(Color.CYAN);
-    canvas.drawRect(width / 2, height / 2, width, height, paint);
-    paint.setColor(Color.BLUE);
-    canvas.drawRect(width / 2, 0, width, height / 2, paint);
-
-    // Render the grid lines.
-    paint.setColor(Color.GREEN);
-
-    for (int i = 0; i < DEFAULT_SPHERE_COLUMNS; ++i) {
-      int x = width * i / DEFAULT_SPHERE_COLUMNS;
-      paint.setStrokeWidth((i % 3 == 0) ? majorWidth : minorWidth);
-      canvas.drawLine(x, 0, x, height, paint);
-    }
-    paint.setColor(Color.YELLOW);
-    for (int i = 0; i < DEFAULT_SPHERE_ROWS; ++i) {
-      int y = height * i / DEFAULT_SPHERE_ROWS;
-      paint.setStrokeWidth((i % 3 == 0) ? majorWidth : minorWidth);
-      canvas.drawLine(0, y, width, y, paint);
-    }
-
-    // Render optional text.
-    if (message != null) {
-      paint.setTextSize(height / 64);
-      paint.setColor(Color.RED);
-      float textWidth = paint.measureText(message);
-
-      canvas.drawText(
-          message,
-          width / 2 - textWidth / 2, // Horizontally center the text.
-          9 * height / 16, // Place it slightly below the horizon for better contrast.
-          paint);
-    }
-  }
 
   @MainThread
   public synchronized void pause() {
