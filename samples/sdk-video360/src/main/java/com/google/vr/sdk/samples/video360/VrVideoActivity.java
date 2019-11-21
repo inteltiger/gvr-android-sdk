@@ -27,7 +27,6 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import android.view.ViewGroup;
-import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
@@ -46,15 +45,11 @@ import javax.microedition.khronos.egl.EGLConfig;
 public class VrVideoActivity extends GvrActivity {
   private static final String TAG = "VrVideoActivity";
 
-  private static final int EXIT_FROM_VR_REQUEST_CODE = 42;
-
   private GvrView gvrView;
   private Renderer renderer;
 
   // Given an intent with a media file and format, this will load the file and generate the mesh.
   private MediaLoader mediaLoader;
-
-
 
   /**
    * Configures the VR system.
@@ -83,18 +78,6 @@ public class VrVideoActivity extends GvrActivity {
     gvrView.setRenderer(renderer);
     setContentView(gvrView);
 
-    // Handle the user clicking on the 'X' in the top left corner. Since this is done when the user
-    // has taken the headset out of VR, it should launch the app's exit flow directly rather than
-    // using the transition flow.
-    gvrView.setOnCloseButtonListener(new Runnable() {
-      @Override
-      public void run() {
-        launch2dActivity();
-      }
-    });
-
-
-
     checkPermissionAndInitialize();
   }
 
@@ -111,21 +94,6 @@ public class VrVideoActivity extends GvrActivity {
     recreate();
   }
 
-  /** Launches the 2D app with the same extras and data. */
-  private void launch2dActivity() {
-    startActivity(new Intent(getIntent()).setClass(this, VideoActivity.class));
-    // When launching the other Activity, it may be necessary to finish() this Activity in order to
-    // free up the MediaPlayer resources. This sample doesn't call mediaPlayer.release() unless the
-    // Activities are destroy()ed. This allows the video to be paused and resumed when another app
-    // is in the foreground. However, most phones have trouble maintaining sufficient resources for
-    // 2 4k videos in the same process. Large videos may fail to play in the second Activity if the
-    // first Activity hasn't finish()ed.
-    //
-    // Alternatively, a single media player instance can be reused across multiple Activities in
-    // order to conserve resources.
-    finish();
-  }
-
   /** Initializes the Activity only if the permission has been granted. */
   private void checkPermissionAndInitialize() {
     if (ContextCompat.checkSelfPermission(this, permission.READ_EXTERNAL_STORAGE)
@@ -136,22 +104,6 @@ public class VrVideoActivity extends GvrActivity {
     }
   }
 
-  /**
-   * Handles the result from {@link DaydreamApi#exitFromVr(Activity, int, Intent)}. This is called
-   * via the uiView.setVrIconClickListener listener below.
-   *
-   * @param requestCode matches the parameter to exitFromVr()
-   * @param resultCode whether the user accepted the exit request or canceled
-   */
-  @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent unused) {
-    if (requestCode == EXIT_FROM_VR_REQUEST_CODE && resultCode == RESULT_OK) {
-      launch2dActivity();
-    } else {
-      // This should contain a VR UI to handle the user declining the exit request.
-      Log.e(TAG, "Declining the exit request isn't implemented in this sample.");
-    }
-  }
 
   @Override
   protected void onResume() {
